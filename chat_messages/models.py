@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
-import datetime
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
+
 
 class Message(models.Model):
     sender = models.ForeignKey(User, related_name='sender')
