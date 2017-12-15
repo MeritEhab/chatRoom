@@ -16,3 +16,13 @@ To make an account run
 
 Then run ```python manage.py runserver```
 
+You can deal with the users module through this links 
+http://localhost:8000/rest-auth/registration/
+http://localhost:8000/rest-auth/login
+
+To start chatting use this link:
+http://localhost:8000/home
+
+Click on the user you would like to chat with and start chatting  
+
+
