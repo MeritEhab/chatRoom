@@ -1,12 +1,14 @@
 from django.contrib.auth.models import User
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
-from chat_messages.serializers import UserSerializer
+''' 
+ListAPIView
+used to read User instances
+'''
+@login_required(login_url='/rest-auth/login')
+def user_list(request):
 
+    users = User.objects.all()
+    return render(request, 'chat_messages/users_list.html', {'users': users})
 
-class UsersList(generics.ListAPIView):
-    model = User
-    serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated,)
-    queryset = User.objects.all()

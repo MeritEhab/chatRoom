@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
-from users.views import UsersList
+from users.views import user_list
 
 urlpatterns = [
-    url(r'^users$', UsersList.as_view(), name='list_users')
+    url(r'^$', user_list, name='list_users')
 ]
