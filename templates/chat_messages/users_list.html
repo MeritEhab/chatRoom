@@ -2,9 +2,10 @@
 {% block content %}
 
   <ul>
+  	<h1>Chat With </h1>
     {% for user in users %}
       <li data-username="{{ user.username }}">
-        <a href="/message/conversation/{{user.id}}">{{ user.username }}</a>
+        <a href="/message/conversation/{{user.id}}" style="text-transform: capitalize;">{{ user.username }}</a>
       </li>
     {% endfor %}
   </ul>

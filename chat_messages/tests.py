@@ -2,14 +2,8 @@ import json
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
-
 
 from chat_messages.models import Message
-from chat_messages.serializers import MessageSerializer
-
 
 class MessagesModelTest(TestCase):
 
@@ -35,73 +29,86 @@ class MessagesViewTest(TestCase):
                                                  password='123456789')
         self.receiver.save()
 
-        # self.message1 = Message.objects.create(text='Hi', sender=self.sender,
-        #                                        receiver=self.receiver,
-        #                                        created="2017-12-11T10:26:58.111181Z")
-        # self.message2 = Message.objects.create(text='Hello', sender=self.sender,
-        #                                        receiver=self.receiver,
-        #                                        created="2017-12-11T10:30:58.111181Z")
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.sender)
+        self.message1 = Message.objects.create(text='Hi', sender=self.sender,
+                                               receiver=self.receiver,
+                                               created="2017-12-11T10:26:58.111181Z")
+        
+    def user_login(self):
+        self.client.login(username='sender', email='t1@example.com',
+                          password='123456789')
 
-        self.message_data = {'text': 'hi', 'sender': self.sender.id,
-                             'receiver': self.receiver.id, 'created': '2017-12-11T10:30:58.111181Z'}
-        self.response = self.client.post(
-            reverse('list_create'),
-            self.message_data,
-            format="json")
+    def test_list_messages(self):
+        self.user_login()
+        action = self.client.get("/message/")
+        self.assertEqual(action.status_code, 200)
+        self.assertEqual(len(json.loads(action.content)), 1)
 
-    # def user_login(self):
-    #     self.client.login(username='sender', email='t1@example.com',
-    #                       password='123456789')
+    def test_send_message(self):
+        self.user_login()
+        new_messge ={
+            'text':'Hello',
+            'sender':self.sender,
+            'receiver':self.receiver.id
+            }
+        action = self.client.post("/message/", new_messge)
+        respone = json.loads(action.content)
+        action_list = self.client.get("/message/")
+        self.assertEqual(action.status_code, 201)
+        self.assertEqual(len(json.loads(action_list.content)), 2)
+        self.assertEqual(respone['text'], new_messge['text'])
+        self.assertEqual(respone['receiver'], new_messge['receiver'])
 
-    # def test_list_messages(self):
-    #     response = client.get_queryset(reverse('list_create'))
-    #     # get data from db
-    #     messages = Message.objects.filter(sender=self.sender,
-    #                                       receiver=self.receiver)
-    #     serializer = MessageSerializer(messages)
-    #     self.assertEqual(response.data, serializer.data)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_message(self):
+        self.user_login()
+        update_message = {
+        'text':'Thankyou',
+        'receiver': self.receiver.id
+        }
+        action = self.client.put("/message/%s/" % self.message1.id,
+            json.dumps(update_message), content_type="application/json")
+        action_list = self.client.get("/message/%s/" % self.message1.id)
+        respone = json.loads(action_list.content)
+        self.assertEqual(action.status_code, 200)
+        self.assertEqual(respone['text'], update_message['text'])
+        
 
-    def test_api_can_create_a_message(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+    def test_delete_message(self):
+        self.user_login()
+        action = self.client.delete("/message/%s/" % self.message1.id)
+        self.assertEquals(action.status_code, 204)
 
-    def test_authorization_is_enforced(self):
-        new_client = APIClient()
-        res = new_client.get('/messages/', kwargs={'pk': 1}, format="json")
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+class ConversationTest(TestCase):
 
-    def test_api_can_get_a_Message(self):
-        message = Message.objects.get(id=1)
-        response = self.client.get(
-            '/message/',
-            kwargs={'pk': message.id}, format="json")
-        print type(response)
+    def setUp(self):
+        self.sender = User.objects.create_user(username='sender',
+                                               email='sender@example.com',
+                                               password='123456789')
+        self.sender.save()
+        self.receiver = User.objects.create_user(username='receiver',
+                                                 email='receiver@example.com',
+                                                 password='123456789')
+        self.receiver.save()
+        self.user = User.objects.create_user(username='user',
+                                                 email='user@example.com',
+                                                 password='123456789')
+        self.user.save()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertContains(response, message)
+        self.message1 = Message.objects.create(text='Hi', sender=self.sender,
+                                               receiver=self.receiver,
+                                               created="2017-12-11T10:26:58.111181Z")
+        self.message2 = Message.objects.create(text='Hi', sender=self.receiver,
+                                               receiver=self.sender,
+                                               created="2017-12-11T10:35:58.111181Z")
+        self.message3 = Message.objects.create(text='Hi', sender=self.sender,
+                                               receiver=self.user,
+                                               created="2017-12-11T10:26:58.111181Z")
+    def user_login(self):
+        self.client.login(username='sender', email='t1@example.com',
+                          password='123456789')
 
-    def test_api_can_update_Message(self):
-        message = Message.objects.get(id=1)
-        res = self.client.put(
-            reverse('update_destroy', kwargs={
-                "id": message.id,
-                "text": "Hola Hola ",
-                "created": "2017-12-13T16:23:24.101925Z",
-                "receiver": message.receiver.id,
-                "sender": message.sender
-            }),
-            format='json'
-        )
-        print res
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+    def test_list_conversation(self):
+        self.user_login()
+        action = self.client.get("/message/conversation_list/%s/"% self.receiver.id)
+        self.assertEqual(action.status_code, 200)
+        self.assertEqual(len(json.loads(action.content)), 2)
 
-    def test_api_can_delete_bucketlist(self):
-        message = Message.objects.get(id=1)
-        print self.client
-        response = self.client.delete(
-            reverse('update_destroy', kwargs={'pk': message.id}),
-            format='json',
-            follow=True)
-        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
