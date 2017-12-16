@@ -17,6 +17,7 @@ To make an account run
 Then run ```python manage.py runserver```
 
 You can deal with the users module through this links 
+
 http://localhost:8000/rest-auth/registration/
 
 http://localhost:8000/rest-auth/login
