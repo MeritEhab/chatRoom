@@ -11,6 +11,8 @@ Make sure Redis is running locally as the settings are configured to point to ``
 
 Run python ```manage.py migrate```
 
+### Usage
+
 To make an account run 
 ```python manage.py createsuperuser```
 
@@ -22,12 +24,10 @@ http://localhost:8000/rest-auth/registration/
 
 http://localhost:8000/rest-auth/login
 
-If you would like to run tests run 
-```python manage.py test ```
-
 To start chatting use this link:
 http://localhost:8000/home
 
 Click on the user you would like to chat with and start chatting  
 
-
+If you would like to run tests run 
+```python manage.py test ```
