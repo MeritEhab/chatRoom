@@ -11,7 +11,6 @@
     socket.onmessage = function message(event) {
       var data = JSON.parse(event.data);
       // NOTE: We escape JavaScript to prevent XSS attacks.
-      console.log(data);
       var node = document.createElement("DIV");
       var textnode = document.createTextNode(data.username+": "+data.text); 
       node.appendChild(textnode);                            
